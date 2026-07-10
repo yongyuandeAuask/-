@@ -10,19 +10,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 解压源码并自动定位项目根目录
+      - name: 解压源码（修复Windows反斜杠路径）
         run: |
           mkdir temp
-          # 用Python解压，兼容Windows反斜杠路径的zip包
-          python3 -c "import zipfile; zipfile.ZipFile('source.zip').extractall('temp')"
-          # 自动找到包含gradlew的目录作为项目根
+          python3 << 'EOF'
+          import zipfile
+          import os
+          with zipfile.ZipFile('source.zip', 'r') as zf:
+              for name in zf.namelist():
+                  fixed = name.replace('\\', '/')
+                  if fixed.endswith('/'):
+                      os.makedirs(f'temp/{fixed}', exist_ok=True)
+                      continue
+                  os.makedirs(f'temp/{os.path.dirname(fixed)}', exist_ok=True)
+                  with zf.open(name) as src, open(f'temp/{fixed}', 'wb') as dst:
+                      dst.write(src.read())
+          EOF
+
+      - name: 自动定位项目根并移动文件
+        run: |
           PROJECT_ROOT=$(find temp -name "gradlew" -type f | head -1 | xargs dirname)
           if [ -z "$PROJECT_ROOT" ]; then
-            echo "错误：压缩包里找不到gradlew文件"
+            echo "错误：压缩包内找不到gradlew"
             ls -R temp
             exit 1
           fi
-          # 将项目文件移到工作区根目录
+          shopt -s dotglob
           mv "$PROJECT_ROOT"/* .
           rm -rf temp
 
