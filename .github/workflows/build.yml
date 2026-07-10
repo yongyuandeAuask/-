@@ -13,15 +13,16 @@ jobs:
       - name: 解压源码并自动定位项目根目录
         run: |
           mkdir temp
-          unzip -q source.zip -d temp
+          # 用Python解压，兼容Windows反斜杠路径的zip包
+          python3 -c "import zipfile; zipfile.ZipFile('source.zip').extractall('temp')"
           # 自动找到包含gradlew的目录作为项目根
           PROJECT_ROOT=$(find temp -name "gradlew" -type f | head -1 | xargs dirname)
           if [ -z "$PROJECT_ROOT" ]; then
-            echo "错误：压缩包里找不到gradlew文件，请检查压缩包内容"
+            echo "错误：压缩包里找不到gradlew文件"
             ls -R temp
             exit 1
           fi
-          # 把项目全部文件移到当前工作区根目录
+          # 将项目文件移到工作区根目录
           mv "$PROJECT_ROOT"/* .
           rm -rf temp
 
