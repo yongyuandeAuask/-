@@ -60,7 +60,7 @@ jobs:
           api-level: 34
           build-tools: 36.0.0
           ndk: 27.3.13750724
-          cmake: 3.31.6
+          cmake: 3.22.1
 
       - name: 赋予gradlew执行权限
         run: chmod +x gradlew
