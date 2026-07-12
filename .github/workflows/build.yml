@@ -57,7 +57,7 @@ jobs:
       - name: Setup Android SDK + NDK + CMake
         uses: android-actions/setup-android@v3
         with:
-          api-level: 36
+          api-level: 34
           build-tools: 36.0.0
           ndk: 27.3.13750724
           cmake: 3.31.6
